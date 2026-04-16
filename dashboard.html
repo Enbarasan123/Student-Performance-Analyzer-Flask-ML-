@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="sidebar">
+<h2>Dashboard</h2>
+<a href="/export_pdf">Export</a>
+<a href="/logout">Logout</a>
+</div>
+
+<div class="main">
+
+<form method="GET">
+<input name="search" placeholder="Search">
+<button>Search</button>
+</form>
+
+<div>
+<a href="/dashboard">All</a>
+<a href="/dashboard?filter=pass">Pass</a>
+<a href="/dashboard?filter=fail">Fail</a>
+</div>
+
+<div class="grid">
+
+<div>
+
+<div class="card">
+<h3>Add Student</h3>
+<form method="POST">
+<input name="name" placeholder="Name" required>
+
+<input name="tamil" placeholder="Tamil" required>
+<input name="english" placeholder="English" required>
+<input name="math" placeholder="Math" required>
+<input name="science" placeholder="Science" required>
+<input name="social" placeholder="Social" required>
+
+<h4>Previous Marks</h4>
+<input name="ptamil" required>
+<input name="penglish" required>
+<input name="pmath" required>
+<input name="pscience" required>
+<input name="psocial" required>
+
+<button>Submit</button>
+</form>
+</div>
+
+{% if prediction %}
+<div class="card">
+<h3>Prediction: {{prediction}}</h3>
+<h3>Status: {{status}}</h3>
+</div>
+{% endif %}
+
+<div class="card">
+<h3>Study Plan</h3>
+<ul>{% for p in plan %}<li>{{p}}</li>{% endfor %}</ul>
+</div>
+
+<div class="card">
+<h3>AI Suggestions</h3>
+<ul>{% for s in suggestions %}<li>{{s}}</li>{% endfor %}</ul>
+</div>
+
+<div class="card">
+<h3>Leaderboard</h3>
+<table>
+<tr><th>Rank</th><th>Name</th><th>Total</th></tr>
+{% for s in leaderboard %}
+<tr><td>{{loop.index}}</td><td>{{s[0]}}</td><td>{{s[-1]}}</td></tr>
+{% endfor %}
+</table>
+</div>
+
+</div>
+
+<div>
+
+<div class="card"><canvas id="barChart"></canvas></div>
+<div class="card"><canvas id="pieChart"></canvas></div>
+<div class="card"><canvas id="lineChart"></canvas></div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+<script>
+let totals = {{ totals|tojson }};
+let statuses = {{ statuses|tojson }};
+let current = {{ current_marks|tojson }};
+let prev = {{ prev_marks|tojson }};
+
+let passCount = statuses.filter(s=>s==="Pass").length;
+let failCount = statuses.filter(s=>s==="Fail").length;
+
+new Chart(barChart,{type:'bar',data:{labels:totals.map((_,i)=>'S'+(i+1)),datasets:[{data:totals}]}});
+
+new Chart(pieChart,{type:'pie',data:{labels:['Pass','Fail'],datasets:[{data:[passCount,failCount]}]}});
+
+new Chart(lineChart,{
+type:'line',
+data:{
+labels:["Tamil","English","Math","Science","Social"],
+datasets:[
+{label:"Previous",data:prev},
+{label:"Current",data:current}
+]
+}
+});
+</script>
+
+</body>
+</html>
